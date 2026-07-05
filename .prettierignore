@@ -1,0 +1,12 @@
+# Keep vendor AI-Elements registry code close to shadcn's generated output.
+components/ai-elements/
+
+# Standard ignores
+.next/
+out/
+build/
+node_modules/
+next-env.d.ts
+
+# Skill tooling/reference content, not shipped app source.
+.agents/

@@ -38,7 +38,7 @@ export default function RootLayout({
         figtree.variable,
       )}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="flex min-h-full flex-col">
         <TooltipProvider>{children}</TooltipProvider>
       </body>
     </html>
