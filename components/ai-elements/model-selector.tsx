@@ -46,6 +46,7 @@ export const ModelSelectorContent = ({
       "outline! border-none! p-0 outline-border! outline-solid!",
       className
     )}
+    closeButtonClassName="top-2.5 right-2.5"
     {...props}
   >
     <DialogTitle className="sr-only">{title}</DialogTitle>

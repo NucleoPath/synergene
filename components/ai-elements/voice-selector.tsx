@@ -123,6 +123,7 @@ export const VoiceSelectorContent = ({
   <DialogContent
     aria-describedby={undefined}
     className={cn("p-0", className)}
+    closeButtonClassName="top-2.5 right-2.5"
     {...props}
   >
     <DialogTitle className="sr-only">{title}</DialogTitle>
