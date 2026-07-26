@@ -436,6 +436,32 @@ export const PromptInputActionAddAttachments = ({
   );
 };
 
+export type PromptInputAttachButtonProps = Omit<
+  ComponentProps<typeof PromptInputButton>,
+  "children" | "onClick"
+> & {
+  label?: string;
+};
+
+export const PromptInputAttachButton = ({
+  label = "Attach files",
+  className,
+  ...props
+}: PromptInputAttachButtonProps) => {
+  const attachments = usePromptInputAttachments();
+
+  const handleClick = useCallback(() => {
+    attachments.openFileDialog();
+  }, [attachments]);
+
+  return (
+    <PromptInputButton className={className} onClick={handleClick} variant="ghost" {...props}>
+      <PlusIcon className="size-4" />
+      <span>{label}</span>
+    </PromptInputButton>
+  );
+};
+
 export type PromptInputActionAddScreenshotProps = ComponentProps<
   typeof DropdownMenuItem
 > & {
@@ -537,6 +563,7 @@ export const PromptInput = ({
 
   // ----- Local attachments (only used when no provider)
   const [items, setItems] = useState<(FileUIPart & { id: string })[]>([]);
+  const [isDragActive, setIsDragActive] = useState(false);
   const files = usingProvider ? controller.attachments.files : items;
 
   // ----- Local referenced sources (always local to PromptInput)
@@ -743,23 +770,46 @@ export const PromptInput = ({
       return;
     }
 
-    const onDragOver = (e: DragEvent) => {
+    const onDragEnter = (e: globalThis.DragEvent) => {
       if (e.dataTransfer?.types?.includes("Files")) {
         e.preventDefault();
+        setIsDragActive(true);
       }
     };
-    const onDrop = (e: DragEvent) => {
+    const onDragOver = (e: globalThis.DragEvent) => {
+      if (e.dataTransfer?.types?.includes("Files")) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "copy";
+        setIsDragActive(true);
+      }
+    };
+    const onDragLeave = (e: globalThis.DragEvent) => {
+      const currentTarget = e.currentTarget;
+      if (
+        currentTarget instanceof HTMLElement &&
+        currentTarget.contains(e.relatedTarget as Node | null)
+      ) {
+        return;
+      }
+      setIsDragActive(false);
+    };
+    const onDrop = (e: globalThis.DragEvent) => {
       if (e.dataTransfer?.types?.includes("Files")) {
         e.preventDefault();
       }
+      setIsDragActive(false);
       if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
         add(e.dataTransfer.files);
       }
     };
+    form.addEventListener("dragenter", onDragEnter);
     form.addEventListener("dragover", onDragOver);
+    form.addEventListener("dragleave", onDragLeave);
     form.addEventListener("drop", onDrop);
     return () => {
+      form.removeEventListener("dragenter", onDragEnter);
       form.removeEventListener("dragover", onDragOver);
+      form.removeEventListener("dragleave", onDragLeave);
       form.removeEventListener("drop", onDrop);
     };
   }, [add, globalDrop]);
@@ -769,23 +819,42 @@ export const PromptInput = ({
       return;
     }
 
-    const onDragOver = (e: DragEvent) => {
+    const onDragEnter = (e: globalThis.DragEvent) => {
       if (e.dataTransfer?.types?.includes("Files")) {
         e.preventDefault();
+        setIsDragActive(true);
       }
     };
-    const onDrop = (e: DragEvent) => {
+    const onDragOver = (e: globalThis.DragEvent) => {
+      if (e.dataTransfer?.types?.includes("Files")) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "copy";
+        setIsDragActive(true);
+      }
+    };
+    const onDragLeave = (e: globalThis.DragEvent) => {
+      if (document.contains(e.relatedTarget as Node | null)) {
+        return;
+      }
+      setIsDragActive(false);
+    };
+    const onDrop = (e: globalThis.DragEvent) => {
       if (e.dataTransfer?.types?.includes("Files")) {
         e.preventDefault();
       }
+      setIsDragActive(false);
       if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
         add(e.dataTransfer.files);
       }
     };
+    document.addEventListener("dragenter", onDragEnter);
     document.addEventListener("dragover", onDragOver);
+    document.addEventListener("dragleave", onDragLeave);
     document.addEventListener("drop", onDrop);
     return () => {
+      document.removeEventListener("dragenter", onDragEnter);
       document.removeEventListener("dragover", onDragOver);
+      document.removeEventListener("dragleave", onDragLeave);
       document.removeEventListener("drop", onDrop);
     };
   }, [add, globalDrop]);
@@ -924,7 +993,17 @@ export const PromptInput = ({
         ref={formRef}
         {...props}
       >
-        <InputGroup className="overflow-hidden">{children}</InputGroup>
+        <div
+          className={cn(
+            "rounded-xl border border-dashed border-border/70 bg-muted/40 px-3 py-2 transition-all duration-200",
+            isDragActive && "border-primary bg-primary/10 shadow-sm"
+          )}
+        >
+          <div className="mb-2 text-xs font-medium text-muted-foreground">
+            <span>Drag and drop CSV, JSON, datasets, or photo files</span>
+          </div>
+          <InputGroup className="overflow-hidden">{children}</InputGroup>
+        </div>
       </form>
     </>
   );
