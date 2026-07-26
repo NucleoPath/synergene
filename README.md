@@ -29,6 +29,30 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
+## End-to-end testing
+
+This project uses [Playwright](https://playwright.dev) for end-to-end tests, targeting Chromium.
+
+One-time setup, install the Chromium browser binary:
+
+```bash
+npx playwright install --with-deps chromium
+```
+
+Run the E2E suite (this builds the app and starts it in production mode):
+
+```bash
+npm run e2e
+```
+
+Run interactively with the Playwright UI:
+
+```bash
+npm run e2e:ui
+```
+
+E2E tests live in `e2e/`. Current coverage is limited to render-only smoke tests — they don't submit chat messages or call the live model, to avoid API costs, flakiness, and secrets requirements in CI.
+
 ## Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
