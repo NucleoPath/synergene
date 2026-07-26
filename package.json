@@ -33,7 +33,7 @@
     "media-chrome": "^4.19.2",
     "motion": "^12.42.2",
     "nanoid": "^5.1.16",
-    "next": "16.2.10",
+    "next": "16.2.11",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "react-jsx-parser": "^2.4.1",
