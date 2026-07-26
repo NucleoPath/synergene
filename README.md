@@ -31,7 +31,7 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## End-to-end testing
 
-This project uses [Playwright](https://playwright.dev) for end-to-end tests, targeting Chromium.
+This project uses [Playwright](https://playwright.dev) for end-to-end tests, targeting Chromium. E2E tests live in `e2e/`.
 
 One-time setup, install the Chromium browser binary:
 
@@ -39,7 +39,7 @@ One-time setup, install the Chromium browser binary:
 npx playwright install --with-deps chromium
 ```
 
-Run the E2E suite (this builds the app and starts it in production mode):
+Run the E2E suite:
 
 ```bash
 npm run e2e
@@ -50,8 +50,6 @@ Run interactively with the Playwright UI:
 ```bash
 npm run e2e:ui
 ```
-
-E2E tests live in `e2e/`. Current coverage is limited to render-only smoke tests — they don't submit chat messages or call the live model, to avoid API costs, flakiness, and secrets requirements in CI.
 
 ## Deploy on Vercel
 
