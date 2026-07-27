@@ -44,6 +44,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# prisma
+/generated/prisma
+
 # agent skills (npx skills update)
 /.agents/skills/
 /.claude/skills/
