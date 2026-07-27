@@ -1,0 +1,5 @@
+# Store message parts as JSON, not normalized per part type
+
+AI SDK's `UIMessage` represents a message as a `parts` array where each part can be text, reasoning, a tool call/result, a source, or a file — a shape that changes as the SDK evolves. We chose to store a message row as `{ id, conversationId, role, createdAt, parts }`, with `parts` persisted as a single JSON column holding the raw parts array, rather than normalizing each part type into its own table/columns.
+
+A fully normalized schema would need a new table (or nullable columns) for every part type the AI SDK adds, and a translation layer to reassemble a `UIMessage` from rows on every read. Storing `parts` as JSON avoids that translation entirely — a stored message round-trips directly into `UIMessage` shape — at the cost of not being able to query/index into individual part contents at the database level. That query capability isn't needed yet; if it becomes necessary, specific fields can be extracted into indexed columns alongside the JSON blob without a full migration.
