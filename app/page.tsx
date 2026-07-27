@@ -39,10 +39,7 @@ import {
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import {
   PromptInput,
-  PromptInputActionAddAttachments,
-  PromptInputActionMenu,
-  PromptInputActionMenuContent,
-  PromptInputActionMenuTrigger,
+  PromptInputAttachButton,
   PromptInputBody,
   PromptInputButton,
   PromptInputFooter,
@@ -89,6 +86,26 @@ import { toast } from "sonner";
 type ChatMessage = UIMessage<{
   versions?: { id: string; content: string }[];
 }>;
+
+type DatasetFileMetadata = {
+  name: string;
+  size?: number;
+  type: string;
+  url?: string;
+};
+
+const createDatasetMetadata = (
+  files: PromptInputMessage["files"],
+): DatasetFileMetadata[] =>
+  files.map((file) => ({
+    name: file.filename || "uploaded-file",
+    size:
+      typeof (file as { size?: number }).size === "number"
+        ? (file as { size?: number }).size
+        : undefined,
+    type: file.mediaType || "application/octet-stream",
+    url: file.url,
+  }));
 
 const initialMessages: ChatMessage[] = [
   {
@@ -535,18 +552,28 @@ const Example = () => {
         return;
       }
 
+      const datasetMetadata = message.files?.length
+        ? createDatasetMetadata(message.files)
+        : undefined;
+
       if (message.files?.length) {
-        toast.success("Files attached", {
-          description: `${message.files.length} file(s) attached to message`,
+        toast.success("Dataset attached", {
+          description: `${message.files.length} file(s) ready for analysis`,
         });
       }
 
       sendMessage(
         {
           files: message.files,
-          text: message.text || "Sent with attachments",
+          text: message.text || "Analyzing dataset",
         },
-        { body: { model, webSearch: useWebSearch } },
+        {
+          body: {
+            model,
+            webSearch: useWebSearch,
+            datasetMetadata,
+          },
+        },
       );
       setText("");
     },
@@ -584,8 +611,8 @@ const Example = () => {
   }, []);
 
   const isSubmitDisabled = useMemo(
-    () => !text.trim() || status === "streaming" || status === "submitted",
-    [text, status],
+    () => status === "streaming" || status === "submitted",
+    [status],
   );
 
   return (
@@ -712,7 +739,12 @@ const Example = () => {
           ))}
         </Suggestions>
         <div className="w-full px-4 pb-4">
-          <PromptInput globalDrop multiple onSubmit={handleSubmit}>
+          <PromptInput
+            accept="text/csv,application/csv,application/vnd.ms-excel,text/tab-separated-values,application/json,text/plain,.csv,.tsv,.json,.ndjson,.parquet"
+            globalDrop
+            multiple
+            onSubmit={handleSubmit}
+          >
             <PromptInputHeader>
               <PromptInputAttachmentsDisplay />
             </PromptInputHeader>
@@ -721,12 +753,7 @@ const Example = () => {
             </PromptInputBody>
             <PromptInputFooter>
               <PromptInputTools>
-                <PromptInputActionMenu>
-                  <PromptInputActionMenuTrigger />
-                  <PromptInputActionMenuContent>
-                    <PromptInputActionAddAttachments />
-                  </PromptInputActionMenuContent>
-                </PromptInputActionMenu>
+                <PromptInputAttachButton />
                 <SpeechInput
                   className="shrink-0"
                   onTranscriptionChange={handleTranscriptionChange}
