@@ -2,6 +2,20 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+The chat route calls Anthropic directly, with the model chosen server-side, so
+set an API key before running the app:
+
+```bash
+cp .env.example .env.local
+# then edit .env.local and set ANTHROPIC_API_KEY
+```
+
+Next.js loads `.env.local` automatically, in development and in
+`build`/`start`. It is gitignored; `.env.example` is the tracked template.
+
+Without a key the app builds and renders, but sending a message returns an
+error.
+
 First, run the development server:
 
 ```bash
