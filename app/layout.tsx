@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "sonner";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -38,9 +39,10 @@ export default function RootLayout({
         "font-sans",
         figtree.variable,
       )}
+      // suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col">
-        <TooltipProvider>{children}</TooltipProvider>
+        <ThemeProvider><TooltipProvider>{children}</TooltipProvider></ThemeProvider>
         <Toaster />
       </body>
     </html>

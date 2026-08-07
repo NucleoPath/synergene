@@ -36,6 +36,7 @@ import {
   ModelSelectorName,
   ModelSelectorTrigger,
 } from "@/components/ai-elements/model-selector";
+import { Navbar } from "@/components/ai-elements/navbar";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import {
   PromptInput,
@@ -589,198 +590,201 @@ const Example = () => {
   );
 
   return (
-    <div className="relative flex size-full flex-col divide-y overflow-hidden">
-      <Conversation>
-        <ConversationContent>
-          {messages.map((message) => {
-            const sourceParts = message.parts.filter(
-              (part): part is SourceUrlUIPart => part.type === "source-url",
-            );
-            const firstSourcePartIndex = message.parts.findIndex(
-              (part) => part.type === "source-url",
-            );
-
-            // Cosmetic-only: some seed messages carry alternate draft
-            // versions for demo purposes. This is not wired to sendMessage
-            // or regenerate; it just lets you flip through the drafts.
-            const versions = message.metadata?.versions;
-
-            if (versions && versions.length > 1) {
-              return (
-                <MessageBranch defaultBranch={0} key={message.id}>
-                  <MessageBranchContent>
-                    {versions.map((version) => (
-                      <Message from={message.role} key={version.id}>
-                        <MessageContent>
-                          <MessageResponse>{version.content}</MessageResponse>
-                        </MessageContent>
-                      </Message>
-                    ))}
-                  </MessageBranchContent>
-                  <MessageBranchSelector>
-                    <MessageBranchPrevious />
-                    <MessageBranchPage />
-                    <MessageBranchNext />
-                  </MessageBranchSelector>
-                </MessageBranch>
+    <div className="max-w-200 m-auto py-27.5">
+      <Navbar />
+      <div className="relative flex size-full flex-col divide-y overflow-hidden">
+        <Conversation>
+          <ConversationContent>
+            {messages.map((message) => {
+              const sourceParts = message.parts.filter(
+                (part): part is SourceUrlUIPart => part.type === "source-url",
               );
-            }
+              const firstSourcePartIndex = message.parts.findIndex(
+                (part) => part.type === "source-url",
+              );
 
-            return (
-              <Message from={message.role} key={message.id}>
-                <div>
-                  {message.parts.map((part, index) => {
-                    if (part.type === "source-url") {
-                      if (index !== firstSourcePartIndex) {
-                        return null;
+              // Cosmetic-only: some seed messages carry alternate draft
+              // versions for demo purposes. This is not wired to sendMessage
+              // or regenerate; it just lets you flip through the drafts.
+              const versions = message.metadata?.versions;
+
+              if (versions && versions.length > 1) {
+                return (
+                  <MessageBranch defaultBranch={0} key={message.id}>
+                    <MessageBranchContent>
+                      {versions.map((version) => (
+                        <Message from={message.role} key={version.id}>
+                          <MessageContent>
+                            <MessageResponse>{version.content}</MessageResponse>
+                          </MessageContent>
+                        </Message>
+                      ))}
+                    </MessageBranchContent>
+                    <MessageBranchSelector>
+                      <MessageBranchPrevious />
+                      <MessageBranchPage />
+                      <MessageBranchNext />
+                    </MessageBranchSelector>
+                  </MessageBranch>
+                );
+              }
+
+              return (
+                <Message from={message.role} key={message.id}>
+                  <div>
+                    {message.parts.map((part, index) => {
+                      if (part.type === "source-url") {
+                        if (index !== firstSourcePartIndex) {
+                          return null;
+                        }
+
+                        return (
+                          <Sources key={`${message.id}-${index}`}>
+                            <SourcesTrigger count={sourceParts.length} />
+                            <SourcesContent>
+                              {sourceParts.map((sourcePart) => (
+                                <Source
+                                  href={sourcePart.url}
+                                  key={sourcePart.sourceId}
+                                  title={sourcePart.title ?? sourcePart.url}
+                                />
+                              ))}
+                            </SourcesContent>
+                          </Sources>
+                        );
                       }
 
-                      return (
-                        <Sources key={`${message.id}-${index}`}>
-                          <SourcesTrigger count={sourceParts.length} />
-                          <SourcesContent>
-                            {sourceParts.map((sourcePart) => (
-                              <Source
-                                href={sourcePart.url}
-                                key={sourcePart.sourceId}
-                                title={sourcePart.title ?? sourcePart.url}
-                              />
-                            ))}
-                          </SourcesContent>
-                        </Sources>
-                      );
-                    }
-
-                    if (part.type === "dynamic-tool") {
-                      return (
-                        <Tool key={`${message.id}-${index}`}>
-                          <ToolHeader
-                            state={part.state}
-                            title={part.title}
-                            toolName={part.toolName}
-                            type="dynamic-tool"
-                          />
-                          <ToolContent>
-                            <ToolInput input={part.input} />
-                            <ToolOutput
-                              errorText={part.errorText}
-                              output={part.output}
+                      if (part.type === "dynamic-tool") {
+                        return (
+                          <Tool key={`${message.id}-${index}`}>
+                            <ToolHeader
+                              state={part.state}
+                              title={part.title}
+                              toolName={part.toolName}
+                              type="dynamic-tool"
                             />
-                          </ToolContent>
-                        </Tool>
-                      );
-                    }
-
-                    if (part.type === "reasoning") {
-                      return (
-                        <Reasoning
-                          isStreaming={part.state === "streaming"}
-                          key={`${message.id}-${index}`}
-                        >
-                          <ReasoningTrigger />
-                          <ReasoningContent>{part.text}</ReasoningContent>
-                        </Reasoning>
-                      );
-                    }
-
-                    if (part.type === "text") {
-                      return (
-                        <MessageContent key={`${message.id}-${index}`}>
-                          <MessageResponse>{part.text}</MessageResponse>
-                        </MessageContent>
-                      );
-                    }
-
-                    return null;
-                  })}
-                </div>
-              </Message>
-            );
-          })}
-        </ConversationContent>
-        <ConversationScrollButton />
-      </Conversation>
-
-      <div className="grid shrink-0 gap-4 pt-4">
-        <Suggestions className="px-4">
-          {suggestions.map((suggestion) => (
-            <SuggestionItem
-              key={suggestion}
-              onClick={handleSuggestionClick}
-              suggestion={suggestion}
-            />
-          ))}
-        </Suggestions>
-        <div className="w-full px-4 pb-4">
-          <PromptInput globalDrop multiple onSubmit={handleSubmit}>
-            <PromptInputHeader>
-              <PromptInputAttachmentsDisplay />
-            </PromptInputHeader>
-            <PromptInputBody>
-              <PromptInputTextarea onChange={handleTextChange} value={text} />
-            </PromptInputBody>
-            <PromptInputFooter>
-              <PromptInputTools>
-                <PromptInputActionMenu>
-                  <PromptInputActionMenuTrigger />
-                  <PromptInputActionMenuContent>
-                    <PromptInputActionAddAttachments />
-                  </PromptInputActionMenuContent>
-                </PromptInputActionMenu>
-                <SpeechInput
-                  className="shrink-0"
-                  onTranscriptionChange={handleTranscriptionChange}
-                  size="icon-sm"
-                  variant="ghost"
-                />
-                <PromptInputButton
-                  onClick={toggleWebSearch}
-                  variant={useWebSearch ? "default" : "ghost"}
-                >
-                  <GlobeIcon size={16} />
-                  <span>Search</span>
-                </PromptInputButton>
-                <ModelSelector
-                  onOpenChange={setModelSelectorOpen}
-                  open={modelSelectorOpen}
-                >
-                  <ModelSelectorTrigger render={<PromptInputButton />}>
-                    {selectedModelData?.chefSlug && (
-                      <ModelSelectorLogo
-                        provider={selectedModelData.chefSlug}
-                      />
-                    )}
-                    {selectedModelData?.name && (
-                      <ModelSelectorName>
-                        {selectedModelData.name}
-                      </ModelSelectorName>
-                    )}
-                  </ModelSelectorTrigger>
-                  <ModelSelectorContent>
-                    <ModelSelectorInput placeholder="Search models..." />
-                    <ModelSelectorList>
-                      <ModelSelectorEmpty>No models found.</ModelSelectorEmpty>
-                      {chefs.map((chef) => (
-                        <ModelSelectorGroup heading={chef} key={chef}>
-                          {models
-                            .filter((m) => m.chef === chef)
-                            .map((m) => (
-                              <ModelItem
-                                isSelected={model === m.id}
-                                key={m.id}
-                                m={m}
-                                onSelect={handleModelSelect}
+                            <ToolContent>
+                              <ToolInput input={part.input} />
+                              <ToolOutput
+                                errorText={part.errorText}
+                                output={part.output}
                               />
-                            ))}
-                        </ModelSelectorGroup>
-                      ))}
-                    </ModelSelectorList>
-                  </ModelSelectorContent>
-                </ModelSelector>
-              </PromptInputTools>
-              <PromptInputSubmit disabled={isSubmitDisabled} status={status} />
-            </PromptInputFooter>
-          </PromptInput>
+                            </ToolContent>
+                          </Tool>
+                        );
+                      }
+
+                      if (part.type === "reasoning") {
+                        return (
+                          <Reasoning
+                            isStreaming={part.state === "streaming"}
+                            key={`${message.id}-${index}`}
+                          >
+                            <ReasoningTrigger />
+                            <ReasoningContent>{part.text}</ReasoningContent>
+                          </Reasoning>
+                        );
+                      }
+
+                      if (part.type === "text") {
+                        return (
+                          <MessageContent key={`${message.id}-${index}`}>
+                            <MessageResponse>{part.text}</MessageResponse>
+                          </MessageContent>
+                        );
+                      }
+
+                      return null;
+                    })}
+                  </div>
+                </Message>
+              );
+            })}
+          </ConversationContent>
+          <ConversationScrollButton />
+        </Conversation>
+
+        <div className="grid shrink-0 gap-4 pt-4">
+          <Suggestions className="px-4">
+            {suggestions.map((suggestion) => (
+              <SuggestionItem
+                key={suggestion}
+                onClick={handleSuggestionClick}
+                suggestion={suggestion}
+              />
+            ))}
+          </Suggestions>
+          <div className="w-full px-4 pb-4">
+            <PromptInput globalDrop multiple onSubmit={handleSubmit}>
+              <PromptInputHeader>
+                <PromptInputAttachmentsDisplay />
+              </PromptInputHeader>
+              <PromptInputBody>
+                <PromptInputTextarea onChange={handleTextChange} value={text} />
+              </PromptInputBody>
+              <PromptInputFooter>
+                <PromptInputTools>
+                  <PromptInputActionMenu>
+                    <PromptInputActionMenuTrigger />
+                    <PromptInputActionMenuContent>
+                      <PromptInputActionAddAttachments />
+                    </PromptInputActionMenuContent>
+                  </PromptInputActionMenu>
+                  <SpeechInput
+                    className="shrink-0"
+                    onTranscriptionChange={handleTranscriptionChange}
+                    size="icon-sm"
+                    variant="ghost"
+                  />
+                  <PromptInputButton
+                    onClick={toggleWebSearch}
+                    variant={useWebSearch ? "default" : "ghost"}
+                  >
+                    <GlobeIcon size={16} />
+                    <span>Search</span>
+                  </PromptInputButton>
+                  <ModelSelector
+                    onOpenChange={setModelSelectorOpen}
+                    open={modelSelectorOpen}
+                  >
+                    <ModelSelectorTrigger render={<PromptInputButton />}>
+                      {selectedModelData?.chefSlug && (
+                        <ModelSelectorLogo
+                          provider={selectedModelData.chefSlug}
+                        />
+                      )}
+                      {selectedModelData?.name && (
+                        <ModelSelectorName>
+                          {selectedModelData.name}
+                        </ModelSelectorName>
+                      )}
+                    </ModelSelectorTrigger>
+                    <ModelSelectorContent>
+                      <ModelSelectorInput placeholder="Search models..." />
+                      <ModelSelectorList>
+                        <ModelSelectorEmpty>No models found.</ModelSelectorEmpty>
+                        {chefs.map((chef) => (
+                          <ModelSelectorGroup heading={chef} key={chef}>
+                            {models
+                              .filter((m) => m.chef === chef)
+                              .map((m) => (
+                                <ModelItem
+                                  isSelected={model === m.id}
+                                  key={m.id}
+                                  m={m}
+                                  onSelect={handleModelSelect}
+                                />
+                              ))}
+                          </ModelSelectorGroup>
+                        ))}
+                      </ModelSelectorList>
+                    </ModelSelectorContent>
+                  </ModelSelector>
+                </PromptInputTools>
+                <PromptInputSubmit disabled={isSubmitDisabled} status={status} />
+              </PromptInputFooter>
+            </PromptInput>
+          </div>
         </div>
       </div>
     </div>
